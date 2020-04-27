@@ -21,9 +21,11 @@ class Indicator():
         self.indicator.setContextMenu(self._build_menu())
         self.indicator.setVisible(True)
         self.indicator.setToolTip('OFF')
+        
+        self.indicator.activated.connect(self._click_indicator)
 
         self.logs_dialog = QTextEdit()
-        self.logs_dialog.setWindowTitle(self.APP_NAME)
+        self.logs_dialog.setWindowTitle(f'{self.APP_NAME} - Logs')
         self.logs_dialog.setFixedSize(440, 440)
         self.logs_dialog.setReadOnly(True)
         
@@ -139,6 +141,10 @@ class Indicator():
                     break
 
                 sleep(0.1)
+
+    def _click_indicator(self, event):
+        if event == QSystemTrayIcon.ActivationReason.Trigger:
+            self._click_logs()
 
 if __name__ == '__main__':
     app = Indicator()
