@@ -17,7 +17,7 @@ class Indicator():
         self.app = QApplication([])
         self.app.setQuitOnLastWindowClosed(False)
         self.indicator = QSystemTrayIcon()
-        self.indicator.setIcon(QIcon('icons/off.png'))
+        self.indicator.setIcon(QIcon('icons/icon.png'))
         self.indicator.setContextMenu(self._build_menu())
         self.indicator.setVisible(True)
         self.indicator.setToolTip('OFF')
@@ -28,6 +28,7 @@ class Indicator():
         self.logs_dialog.setWindowTitle(f'{self.APP_NAME} - Logs')
         self.logs_dialog.setFixedSize(440, 440)
         self.logs_dialog.setReadOnly(True)
+        self.logs_dialog.setWindowIcon(QIcon('icons/icon.png'))
         
         self.vpn_config = '/etc/openfortivpn/config'
         self.vpn_process = None
@@ -121,13 +122,13 @@ class Indicator():
                 line = f.readline()
                 if line.find('Error') != -1 or line.find('ERROR') != -1:
                     self.indicator.setIcon(QIcon('icons/err.png'))
-                    self.indicator.setToolTip('ERR')
+                    self.indicator.setToolTip('ERROR')
                     self.connect_action.setDisabled(False)
                     self.config_action.setDisabled(False)
                     break
 
                 if line.find('Tunnel is up and running') != -1:
-                    self.indicator.setIcon(QIcon('icons/on.png'))
+                    self.indicator.setIcon(QIcon('icons/icon.png'))
                     self.indicator.setToolTip('ON')
                     self.disconnect_action.setDisabled(False)
 
