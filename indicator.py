@@ -67,7 +67,7 @@ class Indicator():
 
     def _click_connect(self):
         self.indicator.setIcon(QIcon('icons/try.png'))
-        self.indicator.setToolTip('TRY')
+        self.indicator.setToolTip('TRYING')
 
         self.connect_action.setDisabled(True)
         self.config_action.setDisabled(True)
@@ -107,7 +107,7 @@ class Indicator():
 
     def _click_exit(self):
         if self.indicator.toolTip() == 'ON':
-            QMessageBox.warning(title=self.APP_NAME, text='VPN is still ON. Please Disconnect first before exiting')
+            _ = QMessageBox.warning(None, self.APP_NAME, 'VPN is still ON. Please Disconnect first before exiting')
 
             return
 
@@ -128,13 +128,13 @@ class Indicator():
                     break
 
                 if line.find('Tunnel is up and running') != -1:
-                    self.indicator.setIcon(QIcon('icons/icon.png'))
+                    self.indicator.setIcon(QIcon('icons/on.png'))
                     self.indicator.setToolTip('ON')
                     self.disconnect_action.setDisabled(False)
 
 
                 if line.find('Logged out') != -1:
-                    self.indicator.setIcon(QIcon('icons/off.png'))
+                    self.indicator.setIcon(QIcon('icons/icon.png'))
                     self.indicator.setToolTip('OFF')
                     self.disconnect_action.setDisabled(True)
                     self.connect_action.setDisabled(False)
