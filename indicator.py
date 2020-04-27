@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from sys import exit as sys_exit
-from PySide2.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QAction, QFileDialog, QTextEdit
+from PySide2.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QAction, QFileDialog, QTextEdit, QMessageBox
 from PySide2.QtGui import QIcon
 from time import sleep
 from shlex import split
@@ -9,6 +9,8 @@ from threading import Thread
 from subprocess import Popen, PIPE, TimeoutExpired, run
 
 class Indicator():
+    APP_NAME = 'FortiVPN Quick Tray'
+
     def __init__(self):
         self.app = QApplication([])
         self.app.setQuitOnLastWindowClosed(False)
@@ -16,6 +18,7 @@ class Indicator():
         self.indicator.setIcon(QIcon('icons/off.png'))
         self.indicator.setContextMenu(self._build_menu())
         self.indicator.setVisible(True)
+        self.indicator.setToolTip('OFF')
 
         self.logs_dialog = QTextEdit()
         
@@ -55,6 +58,7 @@ class Indicator():
 
     def _click_connect(self):
         self.indicator.setIcon(QIcon('icons/try.png'))
+        self.indicator.setToolTip('TRY')
 
         self.connect_action.setDisabled(True)
         self.config_action.setDisabled(True)
@@ -91,6 +95,11 @@ class Indicator():
         self.logs_dialog.show()
 
     def _click_exit(self):
+        if self.indicator.toolTip() == 'ON':
+            QMessageBox.warning(title=self.APP_NAME, text='VPN is still ON. Please Disconnect first before exiting')
+
+            return
+
         self.app.quit()
 
     def _monitor_logs(self):
@@ -99,17 +108,20 @@ class Indicator():
                 line = f.readline()
                 if line.find('Error') != -1 or line.find('ERROR') != -1:
                     self.indicator.setIcon(QIcon('icons/err.png'))
+                    self.indicator.setToolTip('ERR')
                     self.connect_action.setDisabled(False)
                     self.config_action.setDisabled(False)
                     break
 
                 if line.find('Tunnel is up and running') != -1:
                     self.indicator.setIcon(QIcon('icons/on.png'))
+                    self.indicator.setToolTip('ON')
                     self.disconnect_action.setDisabled(False)
 
 
                 if line.find('Logged out') != -1:
                     self.indicator.setIcon(QIcon('icons/off.png'))
+                    self.indicator.setToolTip('OFF')
                     self.disconnect_action.setDisabled(True)
                     self.connect_action.setDisabled(False)
                     self.config_action.setDisabled(False)
