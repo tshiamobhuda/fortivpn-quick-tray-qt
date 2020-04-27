@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from sys import exit as sys_exit
-from PySide2.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QAction
+from PySide2.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QAction, QFileDialog
 from PySide2.QtGui import QIcon
 
 class Indicator():
@@ -12,6 +12,8 @@ class Indicator():
         self.indicator.setIcon(QIcon('icons/off.png'))
         self.indicator.setContextMenu(self._build_menu())
         self.indicator.setVisible(True)
+
+        self.vpn_config = '/etc/openfortivpn/config'
 
     def run(self):
         self.app.exec_()
@@ -49,7 +51,16 @@ class Indicator():
         pass
 
     def _click_config(self):
-        pass
+        config_file, _ = QFileDialog.getOpenFileName(
+            caption='Select config file',
+            dir='/home',
+            filter='All files (*)',
+            options=QFileDialog.DontUseNativeDialog
+        )
+
+        if config_file:
+            self.vpn_config = config_file
+
 
     def _click_logs(self):
         pass
