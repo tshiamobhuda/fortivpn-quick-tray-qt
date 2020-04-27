@@ -6,7 +6,7 @@ from PySide2.QtGui import QIcon
 from time import sleep
 from shlex import split
 from threading import Thread
-from subprocess import Popen, PIPE, TimeoutExpired
+from subprocess import Popen, PIPE, TimeoutExpired, run
 
 class Indicator():
     def __init__(self):
@@ -35,6 +35,8 @@ class Indicator():
         self.logs_action = QAction('Logs')
         self.exit_action = QAction('Exit')
 
+        self.disconnect_action.setDisabled(True)
+
         self.connect_action.triggered.connect(self._click_connect)
         self.disconnect_action.triggered.connect(self._click_disconnect)
         self.config_action.triggered.connect(self._click_config)
@@ -54,6 +56,9 @@ class Indicator():
     def _click_connect(self):
         self.indicator.setIcon(QIcon('icons/try.png'))
 
+        self.connect_action.setDisabled(True)
+        self.config_action.setDisabled(True)
+
         with open('output.log', 'w+b') as f:
             try:
                 self.vpn_process = Popen(split('pkexec openfortivpn -c ' + self.vpn_config), stdin=PIPE, stdout=f, stderr=f)
@@ -65,12 +70,15 @@ class Indicator():
         vpn_process_thread.start()
 
     def _click_disconnect(self):
-        self.indicator.setIcon(QIcon('icons/off.png'))
+        try:
+            run(split('pkexec kill ' + str(self.vpn_process.pid)))
+        except ChildProcessError:
+            pass
 
     def _click_config(self):
         config_file, _ = QFileDialog.getOpenFileName(
             caption='Select config file',
-            dir='/home',
+            dir='/',
             filter='All files (*)',
             options=QFileDialog.DontUseNativeDialog
         )
@@ -90,18 +98,21 @@ class Indicator():
             while True:
                 line = f.readline()
                 if line.find('Error') != -1 or line.find('ERROR') != -1:
-                    # TODO Enable connect & config menu items
                     self.indicator.setIcon(QIcon('icons/err.png'))
+                    self.connect_action.setDisabled(False)
+                    self.config_action.setDisabled(False)
                     break
 
                 if line.find('Tunnel is up and running') != -1:
-                    # TODO Disable disconnect menu item
                     self.indicator.setIcon(QIcon('icons/on.png'))
+                    self.disconnect_action.setDisabled(False)
 
 
                 if line.find('Logged out') != -1:
-                    # TODO Disable disconnect menu item, Enable connect & config menu items
                     self.indicator.setIcon(QIcon('icons/off.png'))
+                    self.disconnect_action.setDisabled(True)
+                    self.connect_action.setDisabled(False)
+                    self.config_action.setDisabled(False)
                     break
 
                 sleep(0.1)
