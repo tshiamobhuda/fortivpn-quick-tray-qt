@@ -21,6 +21,9 @@ class Indicator():
         self.indicator.setToolTip('OFF')
 
         self.logs_dialog = QTextEdit()
+        self.logs_dialog.setWindowTitle(self.APP_NAME)
+        self.logs_dialog.setFixedSize(440, 440)
+        self.logs_dialog.setReadOnly(True)
         
         self.vpn_config = '/etc/openfortivpn/config'
         self.vpn_process = None
@@ -91,7 +94,6 @@ class Indicator():
             self.vpn_config = config_file
 
     def _click_logs(self):
-        self.logs_dialog.setReadOnly(True)
         self.logs_dialog.show()
 
     def _click_exit(self):
