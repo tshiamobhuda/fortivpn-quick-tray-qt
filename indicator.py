@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
-from sys import exit as sys_exit
-from os import remove as remove_log_file
+import sys
+from os import remove as remove_log_file, path
 from PySide2.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QAction, QFileDialog, QTextEdit, QMessageBox
 from PySide2.QtGui import QIcon
 from time import sleep
@@ -17,7 +17,7 @@ class Indicator():
         self.app = QApplication([])
         self.app.setQuitOnLastWindowClosed(False)
         self.indicator = QSystemTrayIcon()
-        self.indicator.setIcon(QIcon('icons/icon.png'))
+        self.indicator.setIcon(QIcon(self._get_file('./icons/icon.png')))
         self.indicator.setContextMenu(self._build_menu())
         self.indicator.setVisible(True)
         self.indicator.setToolTip('OFF')
@@ -28,7 +28,7 @@ class Indicator():
         self.logs_dialog.setWindowTitle(f'{self.APP_NAME} - Logs')
         self.logs_dialog.setFixedSize(440, 440)
         self.logs_dialog.setReadOnly(True)
-        self.logs_dialog.setWindowIcon(QIcon('icons/icon.png'))
+        self.logs_dialog.setWindowIcon(QIcon(self._get_file('./icons/icon.png')))
         
         self.vpn_config = '/etc/openfortivpn/config'
         self.vpn_process = None
@@ -36,7 +36,7 @@ class Indicator():
 
     def run(self):
         self.app.exec_()
-        sys_exit()
+        sys.exit()
 
     def _build_menu(self):
         menu = QMenu()
@@ -66,7 +66,7 @@ class Indicator():
         return menu
 
     def _click_connect(self):
-        self.indicator.setIcon(QIcon('icons/try.png'))
+        self.indicator.setIcon(QIcon(self._get_file('./icons/try.png')))
         self.indicator.setToolTip('TRYING')
 
         self.connect_action.setDisabled(True)
@@ -121,20 +121,20 @@ class Indicator():
             while True:
                 line = f.readline()
                 if line.find('Error') != -1 or line.find('ERROR') != -1:
-                    self.indicator.setIcon(QIcon('icons/err.png'))
+                    self.indicator.setIcon(QIcon(self._get_file('./icons/err.png')))
                     self.indicator.setToolTip('ERROR')
                     self.connect_action.setDisabled(False)
                     self.config_action.setDisabled(False)
                     break
 
                 if line.find('Tunnel is up and running') != -1:
-                    self.indicator.setIcon(QIcon('icons/on.png'))
+                    self.indicator.setIcon(QIcon(self._get_file('./icons/on.png')))
                     self.indicator.setToolTip('ON')
                     self.disconnect_action.setDisabled(False)
 
 
                 if line.find('Logged out') != -1:
-                    self.indicator.setIcon(QIcon('icons/icon.png'))
+                    self.indicator.setIcon(QIcon(self._get_file('./icons/icon.png')))
                     self.indicator.setToolTip('OFF')
                     self.disconnect_action.setDisabled(True)
                     self.connect_action.setDisabled(False)
@@ -142,6 +142,14 @@ class Indicator():
                     break
 
                 sleep(0.1)
+
+    def _get_file(self, file_path):
+        try:
+            base = sys._MEIPASS
+        except Exception:
+            base = path.abspath('.')
+
+        return path.join(base, file_path)
 
     def _click_indicator(self, event):
         if event == QSystemTrayIcon.ActivationReason.Trigger:
