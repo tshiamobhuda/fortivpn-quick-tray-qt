@@ -1,4 +1,11 @@
+# VsCode
 .vscode
+
+# Python
 venv
 __pycache__
-*.log
+
+# PyInstaller
+dist
+build
+*.spec
