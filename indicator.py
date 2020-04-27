@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from sys import exit as sys_exit
-from PySide2.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QAction, QFileDialog
+from PySide2.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QAction, QFileDialog, QTextEdit
 from PySide2.QtGui import QIcon
 
 class Indicator():
@@ -13,6 +13,8 @@ class Indicator():
         self.indicator.setContextMenu(self._build_menu())
         self.indicator.setVisible(True)
 
+        self.logs_dialog = QTextEdit()
+        
         self.vpn_config = '/etc/openfortivpn/config'
 
     def run(self):
@@ -63,7 +65,8 @@ class Indicator():
 
 
     def _click_logs(self):
-        pass
+        self.logs_dialog.setReadOnly(True)
+        self.logs_dialog.show()
 
     def _click_exit(self):
         self.app.quit()
