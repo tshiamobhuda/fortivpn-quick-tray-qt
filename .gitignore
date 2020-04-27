@@ -9,4 +9,3 @@ __pycache__
 dist
 build
 *.spec
-pkg-app

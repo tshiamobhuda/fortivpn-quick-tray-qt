@@ -155,6 +155,7 @@ class Indicator():
         if event == QSystemTrayIcon.ActivationReason.Trigger:
             self._click_logs()
 
+
 if __name__ == '__main__':
     app = Indicator()
     app.run()
