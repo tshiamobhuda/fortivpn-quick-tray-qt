@@ -30,7 +30,7 @@ class Indicator():
         self.connect_action.triggered.connect(self._click_disconnect)
         self.connect_action.triggered.connect(self._click_config)
         self.connect_action.triggered.connect(self._click_logs)
-        self.exit_action.triggered.connect(self.app.quit)
+        self.exit_action.triggered.connect(self._click_exit)
 
         menu.addAction(self.connect_action)
         menu.addAction(self.disconnect_action)
@@ -55,7 +55,7 @@ class Indicator():
         pass
 
     def _click_exit(self):
-        pass
+        self.app.quit()
 
 
 if __name__ == '__main__':
