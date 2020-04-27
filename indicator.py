@@ -1,12 +1,14 @@
 #!/usr/bin/python
 
 from sys import exit as sys_exit
+from os import remove as remove_log_file
 from PySide2.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QAction, QFileDialog, QTextEdit, QMessageBox
 from PySide2.QtGui import QIcon
 from time import sleep
 from shlex import split
 from threading import Thread
 from subprocess import Popen, PIPE, TimeoutExpired, run
+from tempfile import NamedTemporaryFile
 
 class Indicator():
     APP_NAME = 'FortiVPN Quick Tray'
@@ -27,6 +29,7 @@ class Indicator():
         
         self.vpn_config = '/etc/openfortivpn/config'
         self.vpn_process = None
+        self.vpn_logs_file = NamedTemporaryFile(delete=False)
 
     def run(self):
         self.app.exec_()
@@ -66,7 +69,7 @@ class Indicator():
         self.connect_action.setDisabled(True)
         self.config_action.setDisabled(True)
 
-        with open('output.log', 'w+b') as f:
+        with open(self.vpn_logs_file.name, 'w+b') as f:
             try:
                 self.vpn_process = Popen(split('pkexec openfortivpn -c ' + self.vpn_config), stdin=PIPE, stdout=f, stderr=f)
                 self.vpn_process.communicate(timeout=1)
@@ -94,6 +97,9 @@ class Indicator():
             self.vpn_config = config_file
 
     def _click_logs(self):
+        with open(self.vpn_logs_file.name) as logs:
+            self.logs_dialog.setPlainText(logs.read())
+
         self.logs_dialog.show()
 
     def _click_exit(self):
@@ -102,10 +108,13 @@ class Indicator():
 
             return
 
+        if self.vpn_logs_file.name:
+            remove_log_file(self.vpn_logs_file.name)
+
         self.app.quit()
 
     def _monitor_logs(self):
-        with open('output.log') as f:
+        with open(self.vpn_logs_file.name) as f:
             while True:
                 line = f.readline()
                 if line.find('Error') != -1 or line.find('ERROR') != -1:
