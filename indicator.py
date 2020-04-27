@@ -22,14 +22,14 @@ class Indicator():
 
         self.connect_action = QAction('Connect')
         self.disconnect_action = QAction('Diconnect')
-        self.config_action = QAction('Confug')
+        self.config_action = QAction('Config')
         self.logs_action = QAction('Logs')
         self.exit_action = QAction('Exit')
 
         self.connect_action.triggered.connect(self._click_connect)
-        self.connect_action.triggered.connect(self._click_disconnect)
-        self.connect_action.triggered.connect(self._click_config)
-        self.connect_action.triggered.connect(self._click_logs)
+        self.disconnect_action.triggered.connect(self._click_disconnect)
+        self.config_action.triggered.connect(self._click_config)
+        self.logs_action.triggered.connect(self._click_logs)
         self.exit_action.triggered.connect(self._click_exit)
 
         menu.addAction(self.connect_action)
