@@ -42,7 +42,7 @@ class Indicator():
         menu = QMenu()
 
         self.connect_action = QAction('Connect')
-        self.disconnect_action = QAction('Diconnect')
+        self.disconnect_action = QAction('Disconnect')
         self.config_action = QAction('Config')
         self.logs_action = QAction('Logs')
         self.exit_action = QAction('Exit')
