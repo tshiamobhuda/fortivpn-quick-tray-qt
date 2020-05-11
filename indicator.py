@@ -36,7 +36,8 @@ class Indicator():
         self.vpn_logs_file = NamedTemporaryFile(delete=False)
         
         self.vpn_thread = VPNThread(self.vpn_logs_file)
-        self.vpn_thread.vpn_status.connect(self._update_vpn_status)
+        self.vpn_thread.status.connect(self._update_vpn_status)
+        self.vpn_thread.log.connect(self.logs_dialog.append)
 
     def run(self):
         self.app.exec_()
@@ -103,8 +104,9 @@ class Indicator():
             self.vpn_config = config_file
 
     def _click_logs(self):
-        with open(self.vpn_logs_file.name) as logs:
-            self.logs_dialog.setPlainText(logs.read())
+        if not self.vpn_thread.isRunning():
+            with open(self.vpn_logs_file.name) as logs:
+                self.logs_dialog.setPlainText(logs.read())
 
         self.logs_dialog.show()
 
@@ -155,7 +157,8 @@ class Indicator():
 
 
 class VPNThread(QThread):
-    vpn_status = Signal(str)
+    status = Signal(str)
+    log = Signal(str)
 
     def __init__(self, vpn_logs_file=None):
         super().__init__(None)
@@ -166,16 +169,19 @@ class VPNThread(QThread):
         with open(self.vpn_logs_file.name) as f:
             while True:
                 line = f.readline()
+
+                if len(line) > 0:
+                    self.log.emit(line.rstrip())
+
                 if line.find('Error') != -1 or line.find('ERROR') != -1:
-                    self.vpn_status.emit('ERR')
+                    self.status.emit('ERR')
                     break
 
                 if line.find('Tunnel is up and running') != -1:
-                    self.vpn_status.emit('ON')
-                    pass
+                    self.status.emit('ON')
 
                 if line.find('Logged out') != -1:
-                    self.vpn_status.emit('OFF')
+                    self.status.emit('OFF')
                     break
 
                 self.sleep(0.1)
