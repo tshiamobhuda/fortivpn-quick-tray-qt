@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import sys
+import json
 from os import remove as remove_log_file, path
 from PySide2.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QAction, QFileDialog, QTextEdit, QMessageBox
 from PySide2.QtGui import QIcon
@@ -10,6 +11,8 @@ from shlex import split
 from threading import Thread
 from subprocess import Popen, PIPE, TimeoutExpired, run
 from tempfile import NamedTemporaryFile
+from urllib.request import urlopen, HTTPError
+from distutils.version import StrictVersion
 
 class Indicator():
     APP_NAME = 'FortiVPN Quick Tray'
@@ -38,6 +41,10 @@ class Indicator():
         self.vpn_thread = VPNThread(self.vpn_logs_file)
         self.vpn_thread.status.connect(self._update_vpn_status)
         self.vpn_thread.log.connect(self.logs_dialog.append)
+
+        self.app_update_thread = AppUpdateThread()
+        self.app_update_thread.update_available.connect(self._show_update_notification)
+        self.app_update_thread.start()
 
     def run(self):
         self.app.exec_()
@@ -155,6 +162,10 @@ class Indicator():
             self.config_action.setDisabled(False)
             pass
 
+    def _show_update_notification(self, flag):
+        if flag and self.indicator.supportsMessages:
+            self.indicator.showMessage(self.APP_NAME, 'There is a new update available', QIcon(self._get_file('./icons/icon.png')))
+
 
 class VPNThread(QThread):
     status = Signal(str)
@@ -185,6 +196,27 @@ class VPNThread(QThread):
                     break
 
                 self.sleep(0.1)
+
+
+class AppUpdateThread(QThread):
+    update_available = Signal(bool)
+
+    def run(self):
+        try:
+            response = urlopen('https://api.github.com/repos/tshiamobhuda/fortivpn-quick-tray-qt/releases/latest')
+            release = json.loads(response.read().decode())
+        except HTTPError as e:
+            return
+
+        with open('version') as f:
+            current = f.read()
+
+        if StrictVersion(release.get('tag_name')) > StrictVersion(current):
+            self.update_available.emit(True)
+
+            return
+
+        self.update_available.emit(False)
 
 
 if __name__ == '__main__':
