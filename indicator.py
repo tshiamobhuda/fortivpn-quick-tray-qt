@@ -4,6 +4,7 @@ import sys
 from os import remove as remove_log_file, path
 from PySide2.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QAction, QFileDialog, QTextEdit, QMessageBox
 from PySide2.QtGui import QIcon
+from PySide2.QtCore import QThread, QObject, Signal, Slot
 from time import sleep
 from shlex import split
 from threading import Thread
@@ -33,6 +34,9 @@ class Indicator():
         self.vpn_config = '/etc/openfortivpn/config'
         self.vpn_process = None
         self.vpn_logs_file = NamedTemporaryFile(delete=False)
+        
+        self.vpn_thread = VPNThread(self.vpn_logs_file)
+        self.vpn_thread.vpn_status.connect(self._update_vpn_status)
 
     def run(self):
         self.app.exec_()
@@ -78,9 +82,8 @@ class Indicator():
                 self.vpn_process.communicate(timeout=1)
             except TimeoutExpired:
                 pass
-        
-        vpn_process_thread = Thread(target=self._monitor_logs, daemon=True)
-        vpn_process_thread.start()
+
+        self.vpn_thread.start()
 
     def _click_disconnect(self):
         try:
@@ -116,33 +119,6 @@ class Indicator():
 
         self.app.quit()
 
-    def _monitor_logs(self):
-        with open(self.vpn_logs_file.name) as f:
-            while True:
-                line = f.readline()
-                if line.find('Error') != -1 or line.find('ERROR') != -1:
-                    self.indicator.setIcon(QIcon(self._get_file('./icons/err.png')))
-                    self.indicator.setToolTip('ERROR')
-                    self.connect_action.setDisabled(False)
-                    self.config_action.setDisabled(False)
-                    break
-
-                if line.find('Tunnel is up and running') != -1:
-                    self.indicator.setIcon(QIcon(self._get_file('./icons/on.png')))
-                    self.indicator.setToolTip('ON')
-                    self.disconnect_action.setDisabled(False)
-
-
-                if line.find('Logged out') != -1:
-                    self.indicator.setIcon(QIcon(self._get_file('./icons/icon.png')))
-                    self.indicator.setToolTip('OFF')
-                    self.disconnect_action.setDisabled(True)
-                    self.connect_action.setDisabled(False)
-                    self.config_action.setDisabled(False)
-                    break
-
-                sleep(0.1)
-
     def _get_file(self, file_path):
         try:
             base = sys._MEIPASS
@@ -154,6 +130,55 @@ class Indicator():
     def _click_indicator(self, event):
         if event == QSystemTrayIcon.ActivationReason.Trigger:
             self._click_logs()
+
+    def _update_vpn_status(self, message):
+        if message == 'ERR':
+            self.indicator.setIcon(QIcon(self._get_file('./icons/err.png')))
+            self.indicator.setToolTip('ERROR')
+            self.connect_action.setDisabled(False)
+            self.config_action.setDisabled(False)
+            pass
+
+        if message == 'ON':
+            self.indicator.setIcon(QIcon(self._get_file('./icons/on.png')))
+            self.indicator.setToolTip('ON')
+            self.disconnect_action.setDisabled(False)
+            pass
+
+        if message == 'OFF':
+            self.indicator.setIcon(QIcon(self._get_file('./icons/icon.png')))
+            self.indicator.setToolTip('OFF')
+            self.disconnect_action.setDisabled(True)
+            self.connect_action.setDisabled(False)
+            self.config_action.setDisabled(False)
+            pass
+
+
+class VPNThread(QThread):
+    vpn_status = Signal(str)
+
+    def __init__(self, vpn_logs_file=None):
+        super().__init__(None)
+
+        self.vpn_logs_file = vpn_logs_file
+
+    def run(self):
+        with open(self.vpn_logs_file.name) as f:
+            while True:
+                line = f.readline()
+                if line.find('Error') != -1 or line.find('ERROR') != -1:
+                    self.vpn_status.emit('ERR')
+                    break
+
+                if line.find('Tunnel is up and running') != -1:
+                    self.vpn_status.emit('ON')
+                    pass
+
+                if line.find('Logged out') != -1:
+                    self.vpn_status.emit('OFF')
+                    break
+
+                self.sleep(0.1)
 
 
 if __name__ == '__main__':
