@@ -12,6 +12,7 @@ build(){
         --noconfirm \
         --clean \
         --add-data './icons/*.png:icons' \
+        --add-data './version' \
         --exclude-module 'PySide2.QtQml' \
         --exclude-module 'PySide2.QtNetwork'
 }

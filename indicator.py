@@ -42,7 +42,7 @@ class Indicator():
         self.vpn_thread.status.connect(self._update_vpn_status)
         self.vpn_thread.log.connect(self.logs_dialog.append)
 
-        self.app_update_thread = AppUpdateThread()
+        self.app_update_thread = AppUpdateThread(self._get_file('./version'))
         self.app_update_thread.update_available.connect(self._show_update_notification)
         self.app_update_thread.start()
 
@@ -171,7 +171,7 @@ class VPNThread(QThread):
     status = Signal(str)
     log = Signal(str)
 
-    def __init__(self, vpn_logs_file=None):
+    def __init__(self, vpn_logs_file):
         super().__init__(None)
 
         self.vpn_logs_file = vpn_logs_file
@@ -201,6 +201,11 @@ class VPNThread(QThread):
 class AppUpdateThread(QThread):
     update_available = Signal(bool)
 
+    def __init__(self, version_file):
+        super().__init__(None)
+
+        self.version_file = version_file
+
     def run(self):
         try:
             response = urlopen('https://api.github.com/repos/tshiamobhuda/fortivpn-quick-tray-qt/releases/latest')
@@ -208,7 +213,7 @@ class AppUpdateThread(QThread):
         except HTTPError as e:
             return
 
-        with open('version') as f:
+        with open(self.version_file) as f:
             current = f.read()
 
         if StrictVersion(release.get('tag_name')) > StrictVersion(current):
