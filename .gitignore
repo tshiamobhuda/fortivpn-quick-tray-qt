@@ -10,5 +10,5 @@ dist
 build
 *.spec
 
-#misc
+# Misc
 build-script
