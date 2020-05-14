@@ -5,14 +5,14 @@ import json
 from os import remove as remove_log_file, path
 from PySide2.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QAction, QFileDialog, QTextEdit, QMessageBox
 from PySide2.QtGui import QIcon
-from PySide2.QtCore import QThread, QObject, Signal, Slot
-from time import sleep
+from PySide2.QtCore import QThread, Signal
 from shlex import split
-from threading import Thread
 from subprocess import Popen, PIPE, TimeoutExpired, run
 from tempfile import NamedTemporaryFile
-from urllib.request import urlopen, HTTPError
+from urllib.request import urlopen
+from urllib.error import HTTPError
 from distutils.version import StrictVersion
+
 
 class Indicator():
     APP_NAME = 'FortiVPN Quick Tray'
@@ -25,7 +25,7 @@ class Indicator():
         self.indicator.setContextMenu(self._build_menu())
         self.indicator.setVisible(True)
         self.indicator.setToolTip('OFF')
-        
+
         self.indicator.activated.connect(self._click_indicator)
 
         self.logs_dialog = QTextEdit()
@@ -33,11 +33,11 @@ class Indicator():
         self.logs_dialog.setFixedSize(440, 440)
         self.logs_dialog.setReadOnly(True)
         self.logs_dialog.setWindowIcon(QIcon(self._get_file('./icons/icon.png')))
-        
+
         self.vpn_config = '/etc/openfortivpn/config'
         self.vpn_process = None
         self.vpn_logs_file = NamedTemporaryFile(delete=False)
-        
+
         self.vpn_thread = VPNThread(self.vpn_logs_file)
         self.vpn_thread.status.connect(self._update_vpn_status)
         self.vpn_thread.log.connect(self.logs_dialog.append)
@@ -210,7 +210,7 @@ class AppUpdateThread(QThread):
         try:
             response = urlopen('https://api.github.com/repos/tshiamobhuda/fortivpn-quick-tray-qt/releases/latest')
             release = json.loads(response.read().decode())
-        except HTTPError as e:
+        except HTTPError:
             return
 
         with open(self.version_file) as f:
