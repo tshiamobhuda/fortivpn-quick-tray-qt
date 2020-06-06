@@ -30,9 +30,12 @@ import pkg_resources
 import setuptools
 from setuptools.command.install import install
 
-PACKAGE_NAME = "fortivpn_quick_tray_qt"
+NAME = "fortivpn-quick-tray-qt"
+PACKAGE_NAME = NAME.replace("-", "_")
 EXECUTABLE_NAME = "ofv_qt"  # open forti vpn qt
 DESKTOP_INSTALLER = "xdg-desktop-menu"
+ICON_INSTALLER = "xdg-icon-resource"
+ICON_SIZE = 32
 
 with open("README.md", "r") as fh:
     long_description = fh.read().strip()
@@ -45,11 +48,13 @@ class CustomInstallCommand(install):
 
     def __init__(self, dist):
         super().__init__(dist)
-        self.has_xdg_desktop_menu = call(["which", DESKTOP_INSTALLER]) == 0
+        self.has_xdg_desktop_menu_cmd = call(["which", DESKTOP_INSTALLER]) == 0
+        self.has_xdg_icon_resource_cmd = call(["which", ICON_INSTALLER]) == 0
 
     def run(self):
         install.run(self)
         self.install_menu_item()
+        self.install_menu_icon()
 
     def install_menu_item(self):
         """
@@ -58,9 +63,9 @@ class CustomInstallCommand(install):
         Expects xdg-utils to be installed.
         https://freedesktop.org/wiki/Software/xdg-utils/
         """
-        if not self.has_xdg_desktop_menu:
+        if not self.has_xdg_desktop_menu_cmd:
             self.warn("%s is not installed: "
-                      ".desktop file will not be installed" % DESKTOP_INSTALLER)
+                      "menu entry will not be installed" % DESKTOP_INSTALLER)
             return
 
         template_name = "fortivpn-quick-tray-qt.desktop"
@@ -87,9 +92,25 @@ class CustomInstallCommand(install):
             ])
             print("Installed to start menu")
 
+    def install_menu_icon(self):
+        if not self.has_xdg_icon_resource_cmd:
+            self.warn("%s is not installed: "
+                      "menu icon will not be installed" % ICON_INSTALLER)
+            return
+        # Install the icon to freedesktop
+        check_call([
+            ICON_INSTALLER,
+            "install",
+            "--size",
+            str(ICON_SIZE),
+            pkg_resources.resource_filename(PACKAGE_NAME, "icons/icon.png"),
+            NAME
+        ])
+        print("Installed start menu icon")
+
 
 setuptools.setup(
-    name="fortivpn-quick-tray-qt",
+    name=NAME,
     version=version,
     author="Tshiamo Bhuda",
     description="Small simple system tray application for openfortivpn",
