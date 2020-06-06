@@ -141,6 +141,9 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/tshiamobhuda/fortivpn-quick-tray-qt",
     packages=setuptools.find_packages(),
+    install_requires=[
+        "PySide2>=5.14.0",
+    ],
     package_data={
         PACKAGE_NAME: [
             "version",
