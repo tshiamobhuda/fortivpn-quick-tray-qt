@@ -3,6 +3,8 @@
 import sys
 import json
 from os import remove as remove_log_file, path
+
+import pkg_resources
 from PySide2.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QAction, QFileDialog, QTextEdit, QMessageBox
 from PySide2.QtGui import QIcon
 from PySide2.QtCore import QThread, Signal
@@ -17,7 +19,7 @@ SCRIPT_DIR = path.dirname(__file__)
 
 
 def _get_file(rel_path):
-    return path.join(SCRIPT_DIR, rel_path)
+    return pkg_resources.resource_filename(__name__, rel_path)
 
 
 class Indicator():
@@ -48,7 +50,7 @@ class Indicator():
         self.vpn_thread.status.connect(self._update_vpn_status)
         self.vpn_thread.log.connect(self.logs_dialog.append)
 
-        self.app_update_thread = AppUpdateThread(_get_file('../version'))
+        self.app_update_thread = AppUpdateThread(_get_file('version'))
         self.app_update_thread.update_available.connect(self._show_update_notification)
         self.app_update_thread.start()
 
