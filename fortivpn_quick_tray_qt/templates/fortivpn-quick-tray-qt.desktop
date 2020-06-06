@@ -1,0 +1,14 @@
+# Spec
+# https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-1.1.html
+# User `xdg-desktop-menu install <this file>` for installation
+[Desktop Entry]
+Type=Application
+Name=FortiVPN QuickTray QT
+Comment=Small simple system tray application for openfortivpn
+Comment[nl]=Kleine, simple applicatie in het systemvaak voor openfortivpn
+Comment[fr]=Simple, petit indicateur pour openfortivpn
+Comment[de]=Kleine, einfache Anwendung in der Startleiste für openfortivpn
+Exec={executable}
+Icon=fortivpn-quick-tray-qt
+Terminal=false
+Categories=Network;

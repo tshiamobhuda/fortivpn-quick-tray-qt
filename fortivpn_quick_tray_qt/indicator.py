@@ -1,8 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import sys
 import json
 from os import remove as remove_log_file, path
+
+import pkg_resources
 from PySide2.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QAction, QFileDialog, QTextEdit, QMessageBox
 from PySide2.QtGui import QIcon
 from PySide2.QtCore import QThread, Signal
@@ -13,6 +15,12 @@ from urllib.request import urlopen
 from urllib.error import HTTPError
 from distutils.version import StrictVersion
 
+SCRIPT_DIR = path.dirname(__file__)
+
+
+def _get_file(rel_path):
+    return pkg_resources.resource_filename(__name__, rel_path)
+
 
 class Indicator():
     APP_NAME = 'FortiVPN Quick Tray'
@@ -21,7 +29,7 @@ class Indicator():
         self.app = QApplication([])
         self.app.setQuitOnLastWindowClosed(False)
         self.indicator = QSystemTrayIcon()
-        self.indicator.setIcon(QIcon(self._get_file('./icons/icon.png')))
+        self.indicator.setIcon(QIcon(_get_file('icons/icon.png')))
         self.indicator.setContextMenu(self._build_menu())
         self.indicator.setVisible(True)
         self.indicator.setToolTip('OFF')
@@ -32,7 +40,7 @@ class Indicator():
         self.logs_dialog.setWindowTitle(f'{self.APP_NAME} - Logs')
         self.logs_dialog.setFixedSize(440, 440)
         self.logs_dialog.setReadOnly(True)
-        self.logs_dialog.setWindowIcon(QIcon(self._get_file('./icons/icon.png')))
+        self.logs_dialog.setWindowIcon(QIcon(_get_file('icons/icon.png')))
 
         self.vpn_config = '/etc/openfortivpn/config'
         self.vpn_process = None
@@ -42,7 +50,7 @@ class Indicator():
         self.vpn_thread.status.connect(self._update_vpn_status)
         self.vpn_thread.log.connect(self.logs_dialog.append)
 
-        self.app_update_thread = AppUpdateThread(self._get_file('./version'))
+        self.app_update_thread = AppUpdateThread(_get_file('version'))
         self.app_update_thread.update_available.connect(self._show_update_notification)
         self.app_update_thread.start()
 
@@ -78,7 +86,7 @@ class Indicator():
         return menu
 
     def _click_connect(self):
-        self.indicator.setIcon(QIcon(self._get_file('./icons/try.png')))
+        self.indicator.setIcon(QIcon(_get_file('icons/try.png')))
         self.indicator.setToolTip('TRYING')
 
         self.connect_action.setDisabled(True)
@@ -128,34 +136,26 @@ class Indicator():
 
         self.app.quit()
 
-    def _get_file(self, file_path):
-        try:
-            base = sys._MEIPASS
-        except Exception:
-            base = path.abspath('.')
-
-        return path.join(base, file_path)
-
     def _click_indicator(self, event):
         if event == QSystemTrayIcon.ActivationReason.Trigger:
             self._click_logs()
 
     def _update_vpn_status(self, message):
         if message == 'ERR':
-            self.indicator.setIcon(QIcon(self._get_file('./icons/err.png')))
+            self.indicator.setIcon(QIcon(_get_file('icons/err.png')))
             self.indicator.setToolTip('ERROR')
             self.connect_action.setDisabled(False)
             self.config_action.setDisabled(False)
             pass
 
         if message == 'ON':
-            self.indicator.setIcon(QIcon(self._get_file('./icons/on.png')))
+            self.indicator.setIcon(QIcon(_get_file('icons/on.png')))
             self.indicator.setToolTip('ON')
             self.disconnect_action.setDisabled(False)
             pass
 
         if message == 'OFF':
-            self.indicator.setIcon(QIcon(self._get_file('./icons/icon.png')))
+            self.indicator.setIcon(QIcon(_get_file('icons/icon.png')))
             self.indicator.setToolTip('OFF')
             self.disconnect_action.setDisabled(True)
             self.connect_action.setDisabled(False)
@@ -164,7 +164,8 @@ class Indicator():
 
     def _show_update_notification(self, flag):
         if flag and self.indicator.supportsMessages:
-            self.indicator.showMessage(self.APP_NAME, 'There is a new update available', QIcon(self._get_file('./icons/icon.png')))
+            self.indicator.showMessage(self.APP_NAME, 'There is a new update available', QIcon(_get_file(
+                'icons/icon.png')))
 
 
 class VPNThread(QThread):
@@ -197,7 +198,6 @@ class VPNThread(QThread):
 
                 self.sleep(0.1)
 
-
 class AppUpdateThread(QThread):
     update_available = Signal(bool)
 
@@ -224,6 +224,10 @@ class AppUpdateThread(QThread):
         self.update_available.emit(False)
 
 
-if __name__ == '__main__':
+def main():
     app = Indicator()
     app.run()
+
+
+if __name__ == '__main__':
+    main()

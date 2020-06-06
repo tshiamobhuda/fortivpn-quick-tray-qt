@@ -10,5 +10,8 @@ dist
 build
 *.spec
 
+#pypi
+/*.egg-info/
+
 # Misc
 build-script
