@@ -224,6 +224,10 @@ class AppUpdateThread(QThread):
         self.update_available.emit(False)
 
 
-if __name__ == '__main__':
+def main():
     app = Indicator()
     app.run()
+
+
+if __name__ == '__main__':
+    main()

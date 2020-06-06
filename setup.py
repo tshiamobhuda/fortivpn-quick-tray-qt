@@ -26,6 +26,7 @@ SOFTWARE.
 import setuptools
 
 PACKAGE_NAME = "fortivpn_quick_tray_qt"
+EXECUTABLE_NAME = "ofv_qt"  # open forti vpn qt
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -57,6 +58,9 @@ setuptools.setup(
         "Topic :: System :: Networking"
     ],
     python_requires='>=3.6',
-    # https://packaging.python.org/guides/distributing-packages-using-setuptools/#data-files
-    # data_files=[('my_data', ['assets/install/fortivpn-quick-tray-qt.desktop'])],
+    entry_points={
+        "gui_scripts": [
+            "%s = %s.indicator:main" % (EXECUTABLE_NAME, PACKAGE_NAME)
+        ]
+    }
 )
