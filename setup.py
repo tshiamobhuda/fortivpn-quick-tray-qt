@@ -23,7 +23,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 import os
-from subprocess import check_call, check_output, call
+from distutils import log
+from subprocess import check_output, call, run, PIPE, CalledProcessError
 from tempfile import TemporaryDirectory
 
 import pkg_resources
@@ -44,6 +45,10 @@ with open("%s/version" % PACKAGE_NAME, "r") as fh:
     version = fh.read().strip()
 
 
+def call_with_exception(cmd_list):
+    run(cmd_list, stdout=PIPE, stderr=PIPE, check=True)
+
+
 class CustomInstallCommand(install):
 
     def __init__(self, dist):
@@ -53,8 +58,25 @@ class CustomInstallCommand(install):
 
     def run(self):
         install.run(self)
-        self.install_menu_item()
-        self.install_menu_icon()
+        try:
+            self.install_menu_item()
+        except Exception as exception:
+            self.announce("Couldn't install menu item: %s" % exception, log.ERROR)
+            self.check_for_call_error(exception)
+
+        try:
+            self.install_menu_icon()
+        except Exception as exception:
+            self.announce("Couldn't install menu icon: %s" % exception, log.ERROR)
+            self.check_for_call_error(exception)
+
+    def check_for_call_error(self, error):
+        if not isinstance(error, CalledProcessError):
+            return
+        if error.stdout:
+            self.announce("Command stdout: %s" % error.stdout.decode(), log.ERROR)
+        if error.stderr:
+            self.announce("Command stderr: %s" % error.stderr.decode(), log.ERROR)
 
     def install_menu_item(self):
         """
@@ -85,20 +107,21 @@ class CustomInstallCommand(install):
                 tempfile.write(template.format(executable=executable_path))
 
             # Install the desktop file
-            check_call([
+            call_with_exception([
                 "xdg-desktop-menu",
                 "install",
                 rendered_path
             ])
-            print("Installed to start menu")
+        self.announce("Installed start menu entry", log.INFO)
 
     def install_menu_icon(self):
         if not self.has_xdg_icon_resource_cmd:
             self.warn("%s is not installed: "
                       "menu icon will not be installed" % ICON_INSTALLER)
             return
+
         # Install the icon to freedesktop
-        check_call([
+        call_with_exception([
             ICON_INSTALLER,
             "install",
             "--size",
@@ -106,7 +129,7 @@ class CustomInstallCommand(install):
             pkg_resources.resource_filename(PACKAGE_NAME, "icons/icon.png"),
             NAME
         ])
-        print("Installed start menu icon")
+        self.announce("Installed start menu icon", log.INFO)
 
 
 setuptools.setup(
