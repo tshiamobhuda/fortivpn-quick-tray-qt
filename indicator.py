@@ -115,6 +115,9 @@ class Indicator():
             with open(self.vpn_logs_file.name) as logs:
                 self.logs_dialog.setPlainText(logs.read())
 
+        if self.logs_dialog.isVisible():
+            self.logs_dialog.activateWindow()
+
         self.logs_dialog.show()
 
     def _click_exit(self):
