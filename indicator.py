@@ -50,6 +50,8 @@ class Indicator():
         )
         self.app_update_thread.start()
 
+        self.user_disconnect = False
+
     def run(self):
         self.app.exec_()
         sys.exit()
@@ -104,6 +106,7 @@ class Indicator():
 
     def _click_disconnect(self):
         try:
+            self.user_disconnect = True
             run(split('pkexec kill ' + str(self.vpn_process.pid)))
         except ChildProcessError:
             pass
@@ -162,12 +165,24 @@ class Indicator():
             self.indicator.setToolTip('ERROR')
             self.connect_action.setDisabled(False)
             self.config_action.setDisabled(False)
+            self.indicator.showMessage(
+                self.APP_NAME,
+                'An Error occurred while trying to connect to the VPN',
+                QIcon(self._get_file('./icons/icon.png')),
+                3000
+            )
             pass
 
         if message == 'ON':
             self.indicator.setIcon(QIcon(self._get_file('./icons/on.png')))
             self.indicator.setToolTip('ON')
             self.disconnect_action.setDisabled(False)
+            self.indicator.showMessage(
+                self.APP_NAME,
+                'VPN connection established',
+                QIcon(self._get_file('./icons/icon.png')),
+                3000
+            )
             pass
 
         if message == 'OFF':
@@ -176,6 +191,17 @@ class Indicator():
             self.disconnect_action.setDisabled(True)
             self.connect_action.setDisabled(False)
             self.config_action.setDisabled(False)
+
+            if not self.user_disconnect:
+                self.indicator.showMessage(
+                    self.APP_NAME,
+                    'VPN connection ended',
+                    QIcon(self._get_file('./icons/icon.png')),
+                    3000
+                )
+            else:
+                self.user_disconnect = False
+
             pass
 
     def _show_update_notification(self, flag):
