@@ -32,7 +32,9 @@ class Indicator():
         self.logs_dialog.setWindowTitle(f'{self.APP_NAME} - Logs')
         self.logs_dialog.setFixedSize(440, 440)
         self.logs_dialog.setReadOnly(True)
-        self.logs_dialog.setWindowIcon(QIcon(self._get_file('./icons/icon.png')))
+        self.logs_dialog.setWindowIcon(
+            QIcon(self._get_file('./icons/icon.png'))
+        )
 
         self.vpn_config = '/etc/openfortivpn/config'
         self.vpn_process = None
@@ -43,7 +45,9 @@ class Indicator():
         self.vpn_thread.log.connect(self.logs_dialog.append)
 
         self.app_update_thread = AppUpdateThread(self._get_file('./version'))
-        self.app_update_thread.update_available.connect(self._show_update_notification)
+        self.app_update_thread.update_available.connect(
+            self._show_update_notification
+        )
         self.app_update_thread.start()
 
     def run(self):
@@ -86,7 +90,12 @@ class Indicator():
 
         with open(self.vpn_logs_file.name, 'w+b') as f:
             try:
-                self.vpn_process = Popen(split('pkexec openfortivpn -c ' + self.vpn_config), stdin=PIPE, stdout=f, stderr=f)
+                self.vpn_process = Popen(
+                    split('pkexec openfortivpn -c ' + self.vpn_config),
+                    stdin=PIPE,
+                    stdout=f,
+                    stderr=f
+                )
                 self.vpn_process.communicate(timeout=1)
             except TimeoutExpired:
                 pass
@@ -122,7 +131,11 @@ class Indicator():
 
     def _click_exit(self):
         if self.indicator.toolTip() == 'ON':
-            _ = QMessageBox.warning(None, self.APP_NAME, 'VPN is still ON. Please Disconnect first before exiting')
+            _ = QMessageBox.warning(
+                None,
+                self.APP_NAME,
+                'VPN is still ON. Please Disconnect first before exiting'
+            )
 
             return
 
@@ -167,7 +180,11 @@ class Indicator():
 
     def _show_update_notification(self, flag):
         if flag and self.indicator.supportsMessages:
-            self.indicator.showMessage(self.APP_NAME, 'There is a new update available', QIcon(self._get_file('./icons/icon.png')))
+            self.indicator.showMessage(
+                self.APP_NAME,
+                'There is a new update available',
+                QIcon(self._get_file('./icons/icon.png'))
+            )
 
 
 class VPNThread(QThread):
@@ -211,7 +228,9 @@ class AppUpdateThread(QThread):
 
     def run(self):
         try:
-            response = urlopen('https://api.github.com/repos/tshiamobhuda/fortivpn-quick-tray-qt/releases/latest')
+            response = urlopen(
+                'https://api.github.com/repos/tshiamobhuda/fortivpn-quick-tray-qt/releases/latest'
+            )
             release = json.loads(response.read().decode())
         except HTTPError:
             return
