@@ -168,8 +168,7 @@ class Indicator():
             self.indicator.showMessage(
                 self.APP_NAME,
                 'An Error occurred while trying to connect to the VPN',
-                QIcon(self._get_file('./icons/icon.png')),
-                3000
+                QIcon(self._get_file('./icons/icon.png'))
             )
             pass
 
@@ -180,8 +179,7 @@ class Indicator():
             self.indicator.showMessage(
                 self.APP_NAME,
                 'VPN connection established',
-                QIcon(self._get_file('./icons/icon.png')),
-                3000
+                QIcon(self._get_file('./icons/icon.png'))
             )
             pass
 
@@ -196,8 +194,7 @@ class Indicator():
                 self.indicator.showMessage(
                     self.APP_NAME,
                     'VPN connection ended',
-                    QIcon(self._get_file('./icons/icon.png')),
-                    3000
+                    QIcon(self._get_file('./icons/icon.png'))
                 )
             else:
                 self.user_disconnect = False
