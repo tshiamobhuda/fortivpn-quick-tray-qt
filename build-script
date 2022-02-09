@@ -1,0 +1,26 @@
+#!/bin/bash
+
+clean(){
+    rm -rf build dist *.spec
+}
+
+build(){
+    ./venv/bin/pyinstaller indicator.py \
+        --name 'fortivpn-quick-tray' \
+        --onefile \
+        --noconsole \
+        --noconfirm \
+        --clean \
+        --add-data './icons/*.png:icons' \
+        --add-data 'version:.' \
+        --exclude-module 'PySide2.QtQml' \
+        --exclude-module 'PySide2.QtNetwork'
+}
+
+if [[ -n "$1" ]] && [[ "$1" == '-c' ]]
+then
+    clean
+else
+    clean
+    build
+fi

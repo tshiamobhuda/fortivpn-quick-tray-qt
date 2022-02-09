@@ -8,7 +8,3 @@ __pycache__
 # PyInstaller
 dist
 build
-*.spec
-
-# Misc
-build-script
