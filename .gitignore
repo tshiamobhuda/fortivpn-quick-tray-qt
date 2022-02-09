@@ -9,6 +9,3 @@ __pycache__
 dist
 build
 *.spec
-
-# Misc
-build-script
